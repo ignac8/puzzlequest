@@ -11,7 +11,10 @@
     <properties>
         <maven.compiler.source>15</maven.compiler.source>
         <maven.compiler.target>15</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
         <jna.version>5.6.0</jna.version>
+        <lombok.version>1.18.16</lombok.version>
     </properties>
 
     <dependencies>
@@ -19,6 +22,11 @@
             <groupId>net.java.dev.jna</groupId>
             <artifactId>jna-platform</artifactId>
             <version>${jna.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>${lombok.version}</version>
         </dependency>
     </dependencies>
 
