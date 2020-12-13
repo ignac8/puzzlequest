@@ -1,7 +1,5 @@
 package it.zerko.puzzlequest;
 
-import lombok.experimental.UtilityClass;
-
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.List;
@@ -10,7 +8,6 @@ import java.util.function.ToIntFunction;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-@UtilityClass
 public class ColorUtils {
 
   private int scanSize = 10;
@@ -23,15 +20,21 @@ public class ColorUtils {
       .map(Color::new)
       .collect(Collectors.toList());
 
-    return new Color(getAverage(colors, Color::getRed),
-      getAverage(colors, Color::getGreen),
-      getAverage(colors, Color::getBlue));
+    return new Color(getAverageColorChannel(colors, Color::getRed),
+      getAverageColorChannel(colors, Color::getGreen),
+      getAverageColorChannel(colors, Color::getBlue));
   }
 
-  private int getAverage(List<Color> colors, ToIntFunction<Color> getColor) {
+  private int getAverageColorChannel(List<Color> colors, ToIntFunction<Color> getColor) {
     return (int) colors.stream()
       .mapToInt(getColor)
       .average()
       .getAsDouble();
+  }
+
+  public double getColorDifference(Color color1, Color color2) {
+    return Math.pow(color1.getRed() - color2.getRed(), 2) +
+      Math.pow(color1.getGreen() - color2.getGreen(), 2) +
+      Math.pow(color1.getBlue() - color2.getBlue(), 2);
   }
 }
