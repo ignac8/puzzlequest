@@ -1,4 +1,4 @@
-package it.zerko.puzzlequest;
+package it.zerko.puzzlequest.image;
 
 import com.sun.jna.platform.WindowUtils;
 import lombok.SneakyThrows;

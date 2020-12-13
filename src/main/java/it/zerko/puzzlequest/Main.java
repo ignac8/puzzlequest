@@ -1,6 +1,8 @@
 package it.zerko.puzzlequest;
 
-import it.zerko.puzzlequest.gem.Gem;
+import it.zerko.puzzlequest.grid.Grid;
+import it.zerko.puzzlequest.grid.GridProvider;
+import it.zerko.puzzlequest.image.ImageProvider;
 
 import java.awt.image.BufferedImage;
 
@@ -12,7 +14,7 @@ public class Main {
   public static void main(String[] args) throws Exception {
     //BufferedImage actualScreenshot = imageProvider.getScreenshot("Puzzle Quest");
     BufferedImage screenshot = imageProvider.loadImage("screenshot.png");
-    Gem[][] grid = gridProvider.getGrid(screenshot);
+    Grid grid = gridProvider.getGrid(screenshot);
     int debug = 1;
   }
 }

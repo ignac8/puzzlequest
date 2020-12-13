@@ -1,4 +1,4 @@
-package it.zerko.puzzlequest;
+package it.zerko.puzzlequest.grid;
 
 import it.zerko.puzzlequest.gem.BlueMana;
 import it.zerko.puzzlequest.gem.Gem;
@@ -10,6 +10,8 @@ import it.zerko.puzzlequest.gem.Star;
 import it.zerko.puzzlequest.gem.Super;
 import it.zerko.puzzlequest.gem.Wildcard;
 import it.zerko.puzzlequest.gem.YellowMana;
+import it.zerko.puzzlequest.image.ColorUtils;
+import it.zerko.puzzlequest.image.ImageProvider;
 import lombok.SneakyThrows;
 
 import java.awt.*;
@@ -38,16 +40,17 @@ public class GridProvider {
     return colorUtils.getAverageMiddleColor(image);
   }
 
-  public Gem[][] getGrid(BufferedImage screenshot) {
-    return IntStream.range(0, gridSize)
-      .mapToObj(i -> IntStream.range(0, gridSize)
-        .mapToObj(j ->
-          screenshot.getSubimage((int) (startingPoint.getX() + size * i), (int) (startingPoint.getY() + size * j),
-            (int) size, (int) size))
-        .map(colorUtils::getAverageMiddleColor)
-        .map(this::getGem)
-        .toArray(Gem[]::new))
-      .toArray(Gem[][]::new);
+  public Grid getGrid(BufferedImage screenshot) {
+    return new Grid(
+      IntStream.range(0, gridSize)
+        .mapToObj(i -> IntStream.range(0, gridSize)
+          .mapToObj(j ->
+            screenshot.getSubimage((int) (startingPoint.getX() + size * i), (int) (startingPoint.getY() + size * j),
+              (int) size, (int) size))
+          .map(colorUtils::getAverageMiddleColor)
+          .map(this::getGem)
+          .toArray(Gem[]::new))
+        .toArray(Gem[][]::new));
   }
 
   @SneakyThrows

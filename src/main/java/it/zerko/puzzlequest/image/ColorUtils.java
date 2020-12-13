@@ -1,4 +1,4 @@
-package it.zerko.puzzlequest;
+package it.zerko.puzzlequest.image;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
