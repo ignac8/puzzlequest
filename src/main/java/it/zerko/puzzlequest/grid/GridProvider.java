@@ -24,7 +24,7 @@ import java.util.stream.Stream;
 
 public class GridProvider {
 
-  private int gridSize = 8;
+  public static final int GRID_SIZE = 8;
   private Point startingPoint = new Point(272, 186);
   private Point endingPoint = new Point(1016, 930);
   private double size = (endingPoint.getX() - startingPoint.getX()) / 8;
@@ -42,8 +42,8 @@ public class GridProvider {
 
   public Grid getGrid(BufferedImage screenshot) {
     return new Grid(
-      IntStream.range(0, gridSize)
-        .mapToObj(i -> IntStream.range(0, gridSize)
+      IntStream.range(0, GRID_SIZE)
+        .mapToObj(i -> IntStream.range(0, GRID_SIZE)
           .mapToObj(j ->
             screenshot.getSubimage((int) (startingPoint.getX() + size * i), (int) (startingPoint.getY() + size * j),
               (int) size, (int) size))

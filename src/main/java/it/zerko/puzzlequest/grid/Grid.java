@@ -8,10 +8,10 @@ import java.util.Arrays;
 @Value
 public class Grid {
 
-  private Gem[][] grid;
+  private Gem[][] actualGrid;
 
   public Grid copy() {
-    return new Grid(Arrays.stream(grid)
+    return new Grid(Arrays.stream(actualGrid)
       .map(row -> Arrays.stream(row).toArray(Gem[]::new))
       .toArray(Gem[][]::new));
   }
