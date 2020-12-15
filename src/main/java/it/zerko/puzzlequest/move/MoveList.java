@@ -24,7 +24,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
-import java.util.function.ToIntFunction;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -33,7 +32,7 @@ import java.util.stream.Stream;
 @Setter
 public class MoveList implements Comparable<MoveList> {
   private List<Move> actualMoveList = new ArrayList<>();
-  private boolean needsExpansion = true;
+  private boolean hasNextTurn = true;
   private Grid grid;
   private int manaGained;
   private int restGained;
@@ -45,19 +44,19 @@ public class MoveList implements Comparable<MoveList> {
 
   public MoveList copy() {
     return new MoveList(grid)
-      .needsExpansion(needsExpansion)
+      .hasNextTurn(hasNextTurn)
       .actualMoveList(new ArrayList<>(actualMoveList))
       .manaGained(manaGained)
       .restGained(restGained)
       .damageDealt(damageDealt);
   }
 
-  public MoveList addMove(Move move) {
+  public MoveList addMove(Move move, boolean playerMove) {
     actualMoveList.add(move);
     swap(grid, move);
 
     boolean needsFurtherSimulation = true;
-    needsExpansion = false;
+    hasNextTurn = false;
 
     while (needsFurtherSimulation) {
       needsFurtherSimulation = false;
@@ -69,8 +68,8 @@ public class MoveList implements Comparable<MoveList> {
       fourLines.removeIf(fourLine -> lines.stream().anyMatch(fiveLine -> fiveLine.containsAll(fourLine)));
       lines.addAll(fourLines);
 
-      if (!lines.isEmpty()) {
-        needsExpansion = true;
+      if (!lines.isEmpty() && playerMove) {
+        hasNextTurn = true;
       }
 
       List<List<Gem>> threeLines = getLines(grid, 3);
@@ -79,14 +78,14 @@ public class MoveList implements Comparable<MoveList> {
 
       if (!lines.isEmpty()) {
         needsFurtherSimulation = true;
+        addRest(lines, playerMove);
+        addMana(lines, playerMove);
+        addDamage(lines, playerMove);
+        List<Point> supersLocations = getSupersLocations(lines);
+        removeLines(lines);
+        explode(supersLocations, playerMove);
+        gravity();
       }
-
-      addRest(lines);
-      addMana(lines);
-      addDamage(lines);
-      explode(lines);
-      removeLines(lines);
-      gravity();
     }
     return this;
   }
@@ -112,17 +111,21 @@ public class MoveList implements Comparable<MoveList> {
       .forEach(this::removeGem);
   }
 
-  private void explode(List<List<Gem>> lines) {
-    lines.stream()
+  private List<Point> getSupersLocations(List<List<Gem>> lines) {
+    return lines.stream()
       .flatMap(Collection::stream)
       .filter(gem -> gem instanceof Super)
       .map(this::locateGem)
       .filter(Optional::isPresent)
       .map(Optional::get)
-      .forEach(this::explode);
+      .collect(Collectors.toList());
   }
 
-  private void explode(Point point) {
+  private void explode(List<Point> supers, boolean playerMove) {
+    supers.forEach(point -> explode(point, playerMove));
+  }
+
+  private void explode(Point point, boolean playerMove) {
     List<Gem> gemsToRemove = IntStream.rangeClosed(-1, 1)
       .mapToObj(i -> IntStream.rangeClosed(-1, 1)
         .mapToObj(j -> getGem(point, i, j))
@@ -137,20 +140,32 @@ public class MoveList implements Comparable<MoveList> {
       .map(Optional::get)
       .collect(Collectors.toList());
 
-    gemsToRemove.forEach(this::valueSingleGem);
+    gemsToRemove.forEach(gem -> valueSingleGem(gem, playerMove));
     gemsToRemove.stream().map(this::locateGem).map(Optional::get).forEach(this::removeGem);
-    nextExplosionPoints.forEach(this::explode);
+    nextExplosionPoints.forEach(nextPoint -> explode(nextPoint, playerMove));
   }
 
-  private void valueSingleGem(Gem gem) {
+  private void valueSingleGem(Gem gem, boolean playerMove) {
     if (gem instanceof RedMana || gem instanceof BlueMana || gem instanceof GreenMana || gem instanceof YellowMana) {
-      manaGained++;
+      if (playerMove) {
+        manaGained += 1;
+      }
     } else if (gem instanceof Skull) {
-      damageDealt++;
+      if (playerMove) {
+        damageDealt += 1;
+      } else {
+        damageDealt -= 1;
+      }
     } else if (gem instanceof Super) {
-      damageDealt += 5;
+      if (playerMove) {
+        damageDealt += 5;
+      } else {
+        damageDealt -= 5;
+      }
     } else if (gem instanceof Gold || gem instanceof Star) {
-      restGained++;
+      if (playerMove) {
+        restGained += 1;
+      }
     }
   }
 
@@ -175,34 +190,44 @@ public class MoveList implements Comparable<MoveList> {
     grid.actualGrid()[point.x][point.y] = new Empty();
   }
 
-  private void addMana(List<List<Gem>> lines) {
+  private void addMana(List<List<Gem>> lines, boolean playerMove) {
     lines.stream()
       .filter(this::isMana)
-      .forEach(this::addLineMana);
+      .forEach(line -> addLineMana(line, playerMove));
   }
 
-  private void addLineMana(List<Gem> line) {
+  private void addLineMana(List<Gem> line, boolean playerMove) {
     int multiplier = line.stream()
       .filter(gem -> gem instanceof Wildcard)
       .map(gem -> (Wildcard) gem)
       .mapToInt(Wildcard::multiplier)
       .reduce(1, (a, b) -> a * b);
-    manaGained += line.size() * multiplier;
+    if (playerMove) {
+      manaGained += line.size() * multiplier;
+    }
   }
 
-  private void addRest(List<List<Gem>> lines) {
-    restGained += lines.stream()
+  private void addRest(List<List<Gem>> lines, boolean playerMove) {
+    int sum = lines.stream()
       .filter(this::isRest)
       .mapToInt(List::size)
       .sum();
+    if (playerMove) {
+      restGained += sum;
+    }
   }
 
-  private void addDamage(List<List<Gem>> lines) {
-    damageDealt += lines.stream()
+  private void addDamage(List<List<Gem>> lines, boolean playerMove) {
+    int sum = lines.stream()
       .filter(this::isDamage)
       .flatMap(Collection::stream)
       .mapToInt(gem -> gem instanceof Super ? 5 : 1)
       .sum();
+    if (playerMove) {
+      damageDealt += sum;
+    } else {
+      damageDealt -= sum;
+    }
   }
 
   private List<List<Gem>> getLines(Grid grid, int lineSize) {
@@ -254,10 +279,14 @@ public class MoveList implements Comparable<MoveList> {
     actualGrid[move.secondPoint.x][move.secondPoint.y] = firstGem;
   }
 
+  public boolean isValid() {
+    return damageDealt > 0 || manaGained > 0 || restGained > 0;
+  }
+
   @Override
   public int compareTo(MoveList o) {
-    return Comparator.comparingInt((ToIntFunction<MoveList>) MoveList::damageDealt)
-      .thenComparing((Function<MoveList, Boolean>) MoveList::needsExpansion)
+    return Comparator.comparing((Function<MoveList, Boolean>) MoveList::hasNextTurn)
+      .thenComparingInt(MoveList::damageDealt)
       .thenComparingInt(MoveList::manaGained)
       .thenComparingInt(MoveList::restGained)
       .compare(this, o);

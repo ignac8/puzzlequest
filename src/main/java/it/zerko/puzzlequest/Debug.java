@@ -11,10 +11,9 @@ import java.awt.image.BufferedImage;
 
 public class Debug {
 
-  private boolean comboMode = false;
   private ImageProvider imageProvider = new ImageProvider();
   private GridProvider gridProvider = new GridProvider();
-  private MoveProvider moveProvider = new MoveProvider(comboMode);
+  private MoveProvider moveProvider = new MoveProvider();
 
   public static void main(String[] args) {
     new Debug().main();
@@ -28,9 +27,4 @@ public class Debug {
     int debug = 1;
   }
 
-
 }
-
-
-
-
