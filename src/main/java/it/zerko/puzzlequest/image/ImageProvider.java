@@ -1,6 +1,5 @@
 package it.zerko.puzzlequest.image;
 
-import com.sun.jna.platform.WindowUtils;
 import lombok.SneakyThrows;
 
 import javax.imageio.ImageIO;
@@ -22,15 +21,13 @@ public class ImageProvider {
     return ImageIO.read(Paths.get(path).toFile());
   }
 
-  public BufferedImage getScreenshot(String windowTitle) {
-    return robot.createScreenCapture(
-      WindowUtils.getAllWindows(false)
-        .stream()
-        .filter(desktopWindow -> desktopWindow.getTitle().equals(windowTitle))
-        .findFirst()
-        .get()
-        .getLocAndSize());
+  @SneakyThrows
+  public void saveImage(BufferedImage image, String path) {
+    ImageIO.write(image, "png", Paths.get(path).toFile());
   }
 
+  public BufferedImage getScreenshot(Rectangle windowLocationAndSize) {
+    return robot.createScreenCapture(windowLocationAndSize);
+  }
 
 }

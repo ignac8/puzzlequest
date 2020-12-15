@@ -1,4 +1,4 @@
 package it.zerko.puzzlequest.gem;
 
-public class Unknown extends Gem{
+public class Unknown extends Gem {
 }

@@ -13,13 +13,12 @@ import it.zerko.puzzlequest.gem.Unknown;
 import it.zerko.puzzlequest.gem.Wildcard;
 import it.zerko.puzzlequest.gem.YellowMana;
 import it.zerko.puzzlequest.grid.Grid;
-import it.zerko.puzzlequest.grid.GridProvider;
+import it.zerko.puzzlequest.window.WindowProvider;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.awt.*;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
@@ -87,12 +86,12 @@ public class MoveList implements Comparable<MoveList> {
       addDamage(lines);
       explode(lines);
       removeLines(lines);
-      gravity(move);
+      gravity();
     }
     return this;
   }
 
-  private void gravity(Move move) {
+  private void gravity() {
     for (int i = 0; i < grid.actualGrid().length; i++) {
       Gem[] row = grid.actualGrid()[i];
       for (int j = grid.actualGrid().length - 1; j >= 0; j--) {
@@ -107,6 +106,9 @@ public class MoveList implements Comparable<MoveList> {
   private void removeLines(List<List<Gem>> lines) {
     lines.stream()
       .flatMap(Collection::stream)
+      .map(this::locateGem)
+      .filter(Optional::isPresent)
+      .map(Optional::get)
       .forEach(this::removeGem);
   }
 
@@ -115,6 +117,8 @@ public class MoveList implements Comparable<MoveList> {
       .flatMap(Collection::stream)
       .filter(gem -> gem instanceof Super)
       .map(this::locateGem)
+      .filter(Optional::isPresent)
+      .map(Optional::get)
       .forEach(this::explode);
   }
 
@@ -130,10 +134,11 @@ public class MoveList implements Comparable<MoveList> {
     List<Point> nextExplosionPoints = gemsToRemove.stream()
       .filter(gemToRemove -> gemToRemove instanceof Super)
       .map(this::locateGem)
+      .map(Optional::get)
       .collect(Collectors.toList());
 
     gemsToRemove.forEach(this::valueSingleGem);
-    gemsToRemove.forEach(this::removeGem);
+    gemsToRemove.stream().map(this::locateGem).map(Optional::get).forEach(this::removeGem);
     nextExplosionPoints.forEach(this::explode);
   }
 
@@ -157,18 +162,16 @@ public class MoveList implements Comparable<MoveList> {
     }
   }
 
-  private Point locateGem(Gem gem) {
-    return IntStream.range(0, GridProvider.GRID_SIZE)
-      .mapToObj(i -> IntStream.range(0, GridProvider.GRID_SIZE)
+  private Optional<Point> locateGem(Gem gem) {
+    return IntStream.range(0, WindowProvider.GRID_SIZE)
+      .mapToObj(i -> IntStream.range(0, WindowProvider.GRID_SIZE)
         .mapToObj(j -> new Point(i, j)))
       .flatMap(Function.identity())
       .filter(point -> gem.equals(grid.actualGrid()[point.x][point.y]))
-      .findFirst()
-      .get();
+      .findFirst();
   }
 
-  private void removeGem(Gem gem) {
-    Point point = locateGem(gem);
+  private void removeGem(Point point) {
     grid.actualGrid()[point.x][point.y] = new Empty();
   }
 
@@ -195,7 +198,7 @@ public class MoveList implements Comparable<MoveList> {
   }
 
   private void addDamage(List<List<Gem>> lines) {
-    restGained += lines.stream()
+    damageDealt += lines.stream()
       .filter(this::isDamage)
       .flatMap(Collection::stream)
       .mapToInt(gem -> gem instanceof Super ? 5 : 1)
@@ -204,13 +207,13 @@ public class MoveList implements Comparable<MoveList> {
 
   private List<List<Gem>> getLines(Grid grid, int lineSize) {
     return Stream.concat(
-      IntStream.rangeClosed(0, GridProvider.GRID_SIZE - lineSize)
-        .mapToObj(i -> IntStream.range(0, GridProvider.GRID_SIZE)
+      IntStream.rangeClosed(0, WindowProvider.GRID_SIZE - lineSize)
+        .mapToObj(i -> IntStream.range(0, WindowProvider.GRID_SIZE)
           .mapToObj(j -> IntStream.range(0, lineSize)
             .mapToObj(k -> grid.actualGrid()[i + k][j])
             .collect(Collectors.toList()))),
-      IntStream.range(0, GridProvider.GRID_SIZE)
-        .mapToObj(i -> IntStream.rangeClosed(0, GridProvider.GRID_SIZE - lineSize)
+      IntStream.range(0, WindowProvider.GRID_SIZE)
+        .mapToObj(i -> IntStream.rangeClosed(0, WindowProvider.GRID_SIZE - lineSize)
           .mapToObj(j -> IntStream.range(0, lineSize)
             .mapToObj(k -> grid.actualGrid()[i][j + k])
             .collect(Collectors.toList()))))

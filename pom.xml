@@ -15,6 +15,7 @@
 
         <jna.version>5.6.0</jna.version>
         <lombok.version>1.18.16</lombok.version>
+        <jnativehook.version>2.1.0</jnativehook.version>
     </properties>
 
     <dependencies>
@@ -27,6 +28,11 @@
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <version>${lombok.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.1stleg</groupId>
+            <artifactId>jnativehook</artifactId>
+            <version>${jnativehook.version}</version>
         </dependency>
     </dependencies>
 

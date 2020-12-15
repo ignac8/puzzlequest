@@ -12,6 +12,7 @@ import it.zerko.puzzlequest.gem.Wildcard;
 import it.zerko.puzzlequest.gem.YellowMana;
 import it.zerko.puzzlequest.image.ColorUtils;
 import it.zerko.puzzlequest.image.ImageProvider;
+import it.zerko.puzzlequest.window.WindowProvider;
 import lombok.SneakyThrows;
 
 import java.awt.*;
@@ -24,10 +25,6 @@ import java.util.stream.Stream;
 
 public class GridProvider {
 
-  public static final int GRID_SIZE = 8;
-  private Point startingPoint = new Point(272, 186);
-  private Point endingPoint = new Point(1016, 930);
-  private double size = (endingPoint.getX() - startingPoint.getX()) / 8;
   private ColorUtils colorUtils = new ColorUtils();
   private ImageProvider imageProvider = new ImageProvider();
   private Map<Class<? extends Gem>, Color> gemColors = Stream.of(BlueMana.class, GreenMana.class, RedMana.class,
@@ -42,11 +39,12 @@ public class GridProvider {
 
   public Grid getGrid(BufferedImage screenshot) {
     return new Grid(
-      IntStream.range(0, GRID_SIZE)
-        .mapToObj(i -> IntStream.range(0, GRID_SIZE)
+      IntStream.range(0, WindowProvider.GRID_SIZE)
+        .mapToObj(i -> IntStream.range(0, WindowProvider.GRID_SIZE)
           .mapToObj(j ->
-            screenshot.getSubimage((int) (startingPoint.getX() + size * i), (int) (startingPoint.getY() + size * j),
-              (int) size, (int) size))
+            screenshot.getSubimage((int) (WindowProvider.STARTING_POINT.getX() + WindowProvider.SIZE * i),
+              (int) (WindowProvider.STARTING_POINT.getY() + WindowProvider.SIZE * j),
+              (int) WindowProvider.SIZE, (int) WindowProvider.SIZE))
           .map(colorUtils::getAverageMiddleColor)
           .map(this::getGem)
           .toArray(Gem[]::new))
