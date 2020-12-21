@@ -1,10 +1,12 @@
 package it.zerko.puzzlequest.grid;
 
+import it.zerko.puzzlequest.gem.Anvil;
 import it.zerko.puzzlequest.gem.BlueMana;
 import it.zerko.puzzlequest.gem.Gem;
 import it.zerko.puzzlequest.gem.Gold;
 import it.zerko.puzzlequest.gem.GreenMana;
 import it.zerko.puzzlequest.gem.RedMana;
+import it.zerko.puzzlequest.gem.Scroll;
 import it.zerko.puzzlequest.gem.Skull;
 import it.zerko.puzzlequest.gem.Star;
 import it.zerko.puzzlequest.gem.Super;
@@ -28,7 +30,7 @@ public class GridProvider {
   private ColorUtils colorUtils = new ColorUtils();
   private ImageProvider imageProvider = new ImageProvider();
   private Map<Class<? extends Gem>, Color> gemColors = Stream.of(BlueMana.class, GreenMana.class, RedMana.class,
-    Wildcard.class, YellowMana.class, Gold.class, Star.class, Skull.class, Super.class)
+    Wildcard.class, YellowMana.class, Gold.class, Star.class, Skull.class, Super.class, Anvil.class, Scroll.class)
     .collect(Collectors.toMap(cls -> cls, this::getColor));
 
   private Color getColor(Class<? extends Gem> cls) {

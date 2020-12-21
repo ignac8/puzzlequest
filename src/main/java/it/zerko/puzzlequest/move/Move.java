@@ -6,6 +6,6 @@ import java.awt.*;
 
 @Value
 public class Move {
-  public Point firstPoint;
-  public Point secondPoint;
+  Point firstPoint;
+  Point secondPoint;
 }

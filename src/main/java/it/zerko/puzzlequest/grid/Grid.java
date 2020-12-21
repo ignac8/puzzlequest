@@ -8,7 +8,7 @@ import java.util.Arrays;
 @Value
 public class Grid {
 
-  private Gem[][] actualGrid;
+  Gem[][] actualGrid;
 
   public Grid copy() {
     return new Grid(Arrays.stream(actualGrid)

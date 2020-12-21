@@ -1,0 +1,6 @@
+Continuous move mode
+Disable enemy prediction move mode
+Spells support
+Wildcard multiplier reading support
+Five lines should be more prioritized
+Do not fear

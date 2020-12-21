@@ -1,11 +1,13 @@
 package it.zerko.puzzlequest.move;
 
+import it.zerko.puzzlequest.gem.Anvil;
 import it.zerko.puzzlequest.gem.BlueMana;
 import it.zerko.puzzlequest.gem.Empty;
 import it.zerko.puzzlequest.gem.Gem;
 import it.zerko.puzzlequest.gem.Gold;
 import it.zerko.puzzlequest.gem.GreenMana;
 import it.zerko.puzzlequest.gem.RedMana;
+import it.zerko.puzzlequest.gem.Scroll;
 import it.zerko.puzzlequest.gem.Skull;
 import it.zerko.puzzlequest.gem.Star;
 import it.zerko.puzzlequest.gem.Super;
@@ -24,6 +26,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.function.ToIntFunction;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -36,6 +39,7 @@ public class MoveList implements Comparable<MoveList> {
   private Grid grid;
   private int manaGained;
   private int restGained;
+  private int craftingGained;
   private int damageDealt;
 
   public MoveList(Grid grid) {
@@ -46,6 +50,7 @@ public class MoveList implements Comparable<MoveList> {
     return new MoveList(grid)
       .hasNextTurn(hasNextTurn)
       .actualMoveList(new ArrayList<>(actualMoveList))
+      .craftingGained(craftingGained)
       .manaGained(manaGained)
       .restGained(restGained)
       .damageDealt(damageDealt);
@@ -78,6 +83,7 @@ public class MoveList implements Comparable<MoveList> {
 
       if (!lines.isEmpty()) {
         needsFurtherSimulation = true;
+        addCrafting(lines);
         addRest(lines, playerMove);
         addMana(lines, playerMove);
         addDamage(lines, playerMove);
@@ -166,6 +172,8 @@ public class MoveList implements Comparable<MoveList> {
       if (playerMove) {
         restGained += 1;
       }
+    } else if (gem instanceof Anvil || gem instanceof Scroll) {
+      craftingGained += 1;
     }
   }
 
@@ -207,6 +215,13 @@ public class MoveList implements Comparable<MoveList> {
     }
   }
 
+  private void addCrafting(List<List<Gem>> lines) {
+    craftingGained += lines.stream()
+      .filter(this::isCrafting)
+      .mapToInt(List::size)
+      .sum();
+  }
+
   private void addRest(List<List<Gem>> lines, boolean playerMove) {
     int sum = lines.stream()
       .filter(this::isRest)
@@ -243,7 +258,7 @@ public class MoveList implements Comparable<MoveList> {
             .mapToObj(k -> grid.actualGrid()[i][j + k])
             .collect(Collectors.toList()))))
       .flatMap(Function.identity())
-      .filter(line -> isMana(line) || isDamage(line) || isRest(line))
+      .filter(line -> isMana(line) || isDamage(line) || isRest(line) || isCrafting(line))
       .collect(Collectors.toList());
   }
 
@@ -259,8 +274,11 @@ public class MoveList implements Comparable<MoveList> {
   }
 
   private boolean isRest(List<Gem> line) {
-    return lineContainsOnly(line, List.of(Gold.class)) ||
-      lineContainsOnly(line, List.of(Star.class));
+    return lineContainsOnly(line, List.of(Gold.class)) || lineContainsOnly(line, List.of(Star.class));
+  }
+
+  private boolean isCrafting(List<Gem> line) {
+    return lineContainsOnly(line, List.of(Anvil.class)) || lineContainsOnly(line, List.of(Scroll.class));
   }
 
   private boolean lineContainsOnly(List<Gem> line, List<Class<? extends Gem>> classes) {
@@ -272,11 +290,11 @@ public class MoveList implements Comparable<MoveList> {
   private void swap(Grid grid, Move move) {
     Gem[][] actualGrid = grid.actualGrid();
 
-    Gem firstGem = actualGrid[move.firstPoint.x][move.firstPoint.y];
-    Gem secondGem = actualGrid[move.secondPoint.x][move.secondPoint.y];
+    Gem firstGem = actualGrid[move.firstPoint().x][move.firstPoint().y];
+    Gem secondGem = actualGrid[move.secondPoint().x][move.secondPoint().y];
 
-    actualGrid[move.firstPoint.x][move.firstPoint.y] = secondGem;
-    actualGrid[move.secondPoint.x][move.secondPoint.y] = firstGem;
+    actualGrid[move.firstPoint().x][move.firstPoint().y] = secondGem;
+    actualGrid[move.secondPoint().x][move.secondPoint().y] = firstGem;
   }
 
   public boolean isValid() {
@@ -285,7 +303,9 @@ public class MoveList implements Comparable<MoveList> {
 
   @Override
   public int compareTo(MoveList o) {
-    return Comparator.comparing((Function<MoveList, Boolean>) MoveList::hasNextTurn)
+    return Comparator
+      .comparingInt((ToIntFunction<MoveList>) MoveList::craftingGained)
+      .thenComparing((Function<MoveList, Boolean>) MoveList::hasNextTurn)
       .thenComparingInt(MoveList::damageDealt)
       .thenComparingInt(MoveList::manaGained)
       .thenComparingInt(MoveList::restGained)
