@@ -6,7 +6,7 @@
 
     <groupId>it.zerko</groupId>
     <artifactId>puzzlequest</artifactId>
-    <version>0.1-SNAPSHOT</version>
+    <version>0.1</version>
 
     <properties>
         <maven.compiler.source>15</maven.compiler.source>
